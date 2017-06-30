@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+    <groupId>org.amanga.node</groupId>
+   <artifactId>platform-portable-node-java</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  <name>platform-portable-node-java - ${project.version}</name>
+  <packaging>pom</packaging>
+  <properties>
+    <site.basedir>${project.artifactId}</site.basedir>
+  </properties>
+  <distributionManagement>
+    <site>
+      <id>component-site</id>
+      <url>scp://${SERVER}${URL}/${project.name}</url>
+    </site>
+  </distributionManagement>
+  <modules>
+    <module>win32</module>
+    <module>win64</module>
+    <module>linux32</module>
+    <module>linux64</module>
+	 <module>mac64</module>
+  </modules>
+</project>
