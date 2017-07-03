@@ -20,6 +20,7 @@
     <module>win64</module>
     <module>linux32</module>
     <module>linux64</module>
-	 <module>mac64</module>
+    <module>mac64</module>
+    <module>node-runner</module>
   </modules>
 </project>
