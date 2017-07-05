@@ -1,0 +1,13 @@
+sudo: false
+language: java
+services:
+- docker
+cache:
+  directories:
+  - "$HOME/.cache"
+
+deploy:
+  provider: script
+  script: "mvn deploy"
+  skip_cleanup: true
+  tags: true
