@@ -7,8 +7,8 @@
 		<artifactId>platform-portable-node-maven-java</artifactId>
 		<version>1.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>linux64</artifactId>
-	<name>linux64 - ${project.version}</name>
+	<artifactId>node-runner</artifactId>
+	<name>node-maven-runner - ${project.version}</name>
 	<packaging>jar</packaging>
 	<properties>
 		<site.basedir>${project.artifactId}</site.basedir>
@@ -20,18 +20,29 @@
 		</site>
 	</distributionManagement>
 
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
+					<excludes>
+						<exclude>**/Node*.java</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
-
-
 		</plugins>
 
 	</build>
