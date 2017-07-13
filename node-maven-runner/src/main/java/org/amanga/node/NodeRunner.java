@@ -1,7 +1,10 @@
 package org.amanga.node;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 
@@ -10,14 +13,18 @@ import org.apache.commons.io.FileUtils;
 public class NodeRunner {
 
 	private String artifact;
-	private static final String LOCAL_DEST_FOLDER = System.getProperty("user.dir") + "/target";
+	private String jarPath;
+	private String fullArtifact;
+	private String nodePath = NODE_FOLDER_PATH;
+	private static final String MVN = System.getenv("MAVEN_HOME") + "/bin/mvn";
+	private static final String NODE_JAR_PROJECT_VERSION = "1.0-SNAPSHOT";
+	private static final String LOCAL_DEST_FOLDER = System.getProperty("user.dir") + "/tmp";
 	private static final String NODE_VERSION = "node-v6.11.0";
 	private static final String NODE_FOLDER_PATH = LOCAL_DEST_FOLDER + "/" + NODE_VERSION;
 
 	// constructor
-	public NodeRunner() throws IOException {
-		artifact = this.operatingSystem();
-
+	public NodeRunner() throws IOException, InterruptedException {
+		this.operatingSystem();
 		// create new folder to clone
 		new File(LOCAL_DEST_FOLDER).mkdir(); // this not run error if already
 												// exist
@@ -26,63 +33,126 @@ public class NodeRunner {
 
 		new File(LOCAL_DEST_FOLDER).mkdir();
 
-		// define localDestFolder to write, read and delete
+		System.out.println("LOADING NodeRunner OBJECT..");
+		this.downloadNode();
+
+		this.extractJar(jarPath, LOCAL_DEST_FOLDER);
+
+		File nodePathFile = new File(this.nodePath);
+		nodePathFile.setExecutable(true);
+
+		if (nodePathFile.exists() == false) {
+			throw new IllegalStateException("Node execution file is not correctly downloaded and extracted");
+
+		}
+		System.out.println("NodeRunner OBJECT READY");
 
 	};
+
+	/**
+	 * method to delete folder created by constructor (it must be called after
+	 * all node script executions)
+	 * 
+	 * @throws IOException
+	 */
+	public void destroy() throws IOException {
+
+		// create new folder to clone
+		new File(LOCAL_DEST_FOLDER).mkdir(); // this not run error if already
+												// exist
+		// delete folder used to extract
+		FileUtils.forceDelete(new File(LOCAL_DEST_FOLDER));
+
+	}
 
 	/**
 	 * method to execute node script
 	 * 
 	 * @param scriptPath
 	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	public void executeScript(String scriptPath) throws IOException {
-
-		this.downloadNode(artifact);
-		File folder = new File(NODE_FOLDER_PATH);
-
-		if (folder.exists()) {
-
-		} else {
-			// extract jar
-			this.extractJar(LOCAL_DEST_FOLDER, LOCAL_DEST_FOLDER);
+	public void executeScript(String scriptPath) throws IOException, InterruptedException {
+		if (new File(scriptPath).exists() == false) {
+			throw new FileNotFoundException("Your script is not found");
+		}
+		if (new File(nodePath).exists() == false) {
+			throw new IllegalStateException("Node execution file is not found");
 		}
 
-		String nodePath = "";
-		if (artifact.contains("linux")) {
-			nodePath = "/bin/node";
+		System.out.println("Execute " + scriptPath + " node script:");
 
-		} else if (artifact.contains("win")) {
-			nodePath = "/node.exe";
+		System.out.println("-------------------------------------");
+		Process process = Runtime.getRuntime().exec(this.nodePath + " " + scriptPath);
+
+		int exitCode = process.waitFor();
+
+		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+		String s;
+		while ((s = reader.readLine()) != null) {
+			System.out.println(s);
 		}
-
-		else {
-			// mac
+		if (exitCode != 0) {
+			throw new IllegalStateException(
+					"error execute node script " + scriptPath + " ,the exit code is " + exitCode);
 		}
-
-		Runtime.getRuntime().exec(NODE_FOLDER_PATH + nodePath + " " + scriptPath);
-
-		// delete folder used to extract
-		FileUtils.forceDelete(new File(LOCAL_DEST_FOLDER));
+		process.destroy();
+		System.out.println("-------------------------------------");
 
 	}
 
 	// method to understand the O.S.
-	private String operatingSystem() {
+	private void operatingSystem() {
 		String name = System.getProperty("os.name").toLowerCase();
 		String architecture = System.getProperty("os.arch");
 
-		return "linux64";
+		if (architecture.contains("64")) {
+			this.artifact = "64";
+		} else {
+			this.artifact = "32";
+		}
+
+		if (name.contains("win")) {
+			this.artifact = "win" + this.artifact;
+			this.nodePath = this.nodePath + "/node.exe";
+
+		} else if (name.contains("lin")) {
+			this.artifact = "linux" + this.artifact;
+			this.nodePath = this.nodePath + "/bin/node";
+
+		}
+		// for mac
+		else {
+
+		}
+
+		String jarName = this.artifact + "-" + NODE_JAR_PROJECT_VERSION + ".jar";
+		this.jarPath = LOCAL_DEST_FOLDER + "/" + jarName;
+		this.fullArtifact = "org.amanga.node:" + artifact + ":" + NODE_JAR_PROJECT_VERSION + ":jar";
+
 	}
 
 	// method to download correct node jar for O.S.
-	private void downloadNode(String artifact) {
-		// instantiate maven
+	private void downloadNode() throws IOException, InterruptedException {
 
-		// "mvn dependency:get -DrepoUrl=http://repo.maven.apache.org/maven2/
-		// -Dartifact=org.springframework:spring-context:4.0.4.RELEASE:jar
-		// -Dtransitive=false -Ddest=localDestFolder"
-		// il jar giusto (con node portable per la piattaforma)
+		String mavenTask = " dependency:get -DrepoUrl=http://repo.maven.apache.org/maven2/ -Dartifact=" + fullArtifact
+				+ " -Dtransitive=false -Ddest=" + LOCAL_DEST_FOLDER;
+
+		Process process = Runtime.getRuntime().exec(MVN + mavenTask);
+
+		int exitCode = process.waitFor();
+
+		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+		String s;
+		while ((s = reader.readLine()) != null) {
+			if (s.contains("[ERROR]")) {
+				System.out.println(s);
+			}
+		}
+		if (exitCode != 0) {
+			throw new IllegalStateException("error download node version because the exit code is " + exitCode);
+		}
+		process.destroy();
 
 	}
 
