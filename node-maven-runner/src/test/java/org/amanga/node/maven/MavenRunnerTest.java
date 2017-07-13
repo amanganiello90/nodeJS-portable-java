@@ -12,13 +12,13 @@ public class MavenRunnerTest {
 
 	@Test
 	public void testExecuteWithoutDir() throws Exception {
-		MavenRunner.execute("-v");
+		//MavenRunner.execute("-v");
 
 	}
 
 	@Test
 	public void testExecuteWithDir() throws Exception {
-		MavenRunner.execute("-v", "/home/angelo/git");
+		//MavenRunner.execute("-v", "/home/angelo/git");
 
 	}
 

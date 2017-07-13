@@ -1,43 +1,69 @@
 package org.amanga.node;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 
+import org.apache.commons.io.FileUtils;
+
 public class NodeRunner {
 
 	private String artifact;
-	private String localDestFolder;
+	private static final String LOCAL_DEST_FOLDER = System.getProperty("user.dir") + "/target";
+	private static final String NODE_VERSION = "node-v6.11.0";
+	private static final String NODE_FOLDER_PATH = LOCAL_DEST_FOLDER + "/" + NODE_VERSION;
 
 	// constructor
 	public NodeRunner() throws IOException {
 		artifact = this.operatingSystem();
 
+		// create new folder to clone
+		new File(LOCAL_DEST_FOLDER).mkdir(); // this not run error if already
+												// exist
+		// Delete old folder
+		FileUtils.forceDelete(new File(LOCAL_DEST_FOLDER));
+
+		new File(LOCAL_DEST_FOLDER).mkdir();
+
 		// define localDestFolder to write, read and delete
-
-		this.downloadNode(artifact);
-
-		// extract jar
-		this.extractJar(localDestFolder, localDestFolder);
 
 	};
 
+	/**
+	 * method to execute node script
+	 * 
+	 * @param scriptPath
+	 * @throws IOException
+	 */
 	public void executeScript(String scriptPath) throws IOException {
-		
-		String nodeFolderPath="";
+
+		this.downloadNode(artifact);
+		File folder = new File(NODE_FOLDER_PATH);
+
+		if (folder.exists()) {
+
+		} else {
+			// extract jar
+			this.extractJar(LOCAL_DEST_FOLDER, LOCAL_DEST_FOLDER);
+		}
+
+		String nodePath = "";
 		if (artifact.contains("linux")) {
+			nodePath = "/bin/node";
 
 		} else if (artifact.contains("win")) {
-
+			nodePath = "/node.exe";
 		}
 
 		else {
-			//mac
+			// mac
 		}
-		
-		Runtime.getRuntime().exec(nodeFolderPath +" " + scriptPath);
+
+		Runtime.getRuntime().exec(NODE_FOLDER_PATH + nodePath + " " + scriptPath);
 
 		// delete folder used to extract
+		FileUtils.forceDelete(new File(LOCAL_DEST_FOLDER));
 
 	}
 
@@ -46,7 +72,7 @@ public class NodeRunner {
 		String name = System.getProperty("os.name").toLowerCase();
 		String architecture = System.getProperty("os.arch");
 
-		return "artifact";
+		return "linux64";
 	}
 
 	// method to download correct node jar for O.S.
@@ -60,13 +86,6 @@ public class NodeRunner {
 
 	}
 
-	/**
-	 * method to extract jar file
-	 * 
-	 * @param jarFile
-	 * @param destDir
-	 * @throws IOException
-	 */
 	private void extractJar(String jarFile, String destDir) throws IOException {
 		@SuppressWarnings("resource")
 		java.util.jar.JarFile jar = new java.util.jar.JarFile(jarFile);
