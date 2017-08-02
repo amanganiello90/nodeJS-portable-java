@@ -94,7 +94,7 @@ public class NodeRunner {
 		}
 		if (exitCode != 0) {
 			throw new IllegalStateException(
-					"error execute node script " + scriptPath + " ,the exit code is " + exitCode);
+					"error execute node script " + scriptPath + " , the exit code is " + exitCode);
 		}
 		process.destroy();
 		System.out.println("-------------------------------------");
@@ -105,16 +105,14 @@ public class NodeRunner {
 	private void operatingSystem() {
 		String name = System.getProperty("os.name").toLowerCase();
 		String architecture = System.getProperty("os.arch");
-		
-		if(System.getenv("MAVEN_HOME")!=null){
-			this.MVN=System.getenv("MAVEN_HOME") + "/bin/mvn";
-			
-		}
-		else if(System.getenv("M2_HOME")!=null){
-			this.MVN=System.getenv("M2_HOME") + "/bin/mvn";
-		}
-		else{
-			throw new IllegalStateException("you don't have a maven environment variable set " );
+
+		if (System.getenv("MAVEN_HOME") != null) {
+			this.MVN = System.getenv("MAVEN_HOME") + "/bin/mvn";
+
+		} else if (System.getenv("M2_HOME") != null) {
+			this.MVN = System.getenv("M2_HOME") + "/bin/mvn";
+		} else {
+			throw new IllegalStateException("You don't have set a maven environment variable (MAVEN_HOME or M2_HOME) ");
 		}
 
 		if (architecture.contains("64")) {
