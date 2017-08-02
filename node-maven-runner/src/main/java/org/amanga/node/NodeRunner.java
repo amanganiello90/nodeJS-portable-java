@@ -16,7 +16,7 @@ public class NodeRunner {
 	private String jarPath;
 	private String fullArtifact;
 	private String nodePath = NODE_FOLDER_PATH;
-	private static final String MVN = System.getenv("MAVEN_HOME") + "/bin/mvn";
+	private String MVN;
 	private static final String NODE_JAR_PROJECT_VERSION = "1.0-SNAPSHOT";
 	private static final String LOCAL_DEST_FOLDER = System.getProperty("user.dir") + "/tmp";
 	private static final String NODE_VERSION = "node-v6.11.0";
@@ -105,6 +105,17 @@ public class NodeRunner {
 	private void operatingSystem() {
 		String name = System.getProperty("os.name").toLowerCase();
 		String architecture = System.getProperty("os.arch");
+		
+		if(System.getenv("MAVEN_HOME")!=null){
+			this.MVN=System.getenv("MAVEN_HOME") + "/bin/mvn";
+			
+		}
+		else if(System.getenv("M2_HOME")!=null){
+			this.MVN=System.getenv("M2_HOME") + "/bin/mvn";
+		}
+		else{
+			throw new IllegalStateException("you don't have a maven environment variable set " );
+		}
 
 		if (architecture.contains("64")) {
 			this.artifact = "64";
